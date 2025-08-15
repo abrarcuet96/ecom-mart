@@ -1,5 +1,8 @@
+import Providers from "@/providers/Providers";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -23,12 +26,31 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
-    </html>
+    <Providers>
+      <html lang="en">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          <Script id="cz-fix" strategy="beforeInteractive">
+            {`
+            if (document && document.body && document.body.hasAttribute('cz-shortcut-listen')) {
+              document.body.removeAttribute('cz-shortcut-listen');
+            }
+            // Guard against it being re-added immediately
+            const mo = new MutationObserver((mutations) => {
+              for (const m of mutations) {
+                if (m.type === 'attributes' && m.attributeName === 'cz-shortcut-listen') {
+                  document.body.removeAttribute('cz-shortcut-listen');
+                }
+              }
+            });
+            mo.observe(document.body, { attributes: true, attributeFilter: ['cz-shortcut-listen'] });
+          `}
+          </Script>
+          <Toaster richColors position="top-center" />
+          {children}
+        </body>
+      </html>
+    </Providers>
   );
 }
