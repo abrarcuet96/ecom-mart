@@ -1,14 +1,19 @@
-import Image from "next/image";
-import { Dispatch, SetStateAction, useState } from "react";
+import { cn } from "@/lib/utils";
+import { Dispatch, SetStateAction } from "react";
 import { Input } from "../../input";
 
 interface TImageUploaderProps {
-  imageFiles: File[] | [];
-  setImageFiles: Dispatch<SetStateAction<[] | File[]>>;
+  label?: string;
+  className?: string;
+  setImageFiles: Dispatch<SetStateAction<File[]>>;
+  setImagePreview: Dispatch<SetStateAction<string[]>>;
 }
-const ImageUploader = ({ imageFiles, setImageFiles }: TImageUploaderProps) => {
-  const [imagePreview, setImagePreview] = useState<string[] | []>([]);
-
+const ImageUploader = ({
+  label = "Upload Images",
+  className,
+  setImageFiles,
+  setImagePreview,
+}: TImageUploaderProps) => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files![0];
     setImageFiles((prev) => [...prev, file]);
@@ -25,7 +30,7 @@ const ImageUploader = ({ imageFiles, setImageFiles }: TImageUploaderProps) => {
   };
 
   return (
-    <div>
+    <div className={cn("flex flex-col items-center w-full gap-4", className)}>
       <Input
         type="file"
         multiple
@@ -35,22 +40,11 @@ const ImageUploader = ({ imageFiles, setImageFiles }: TImageUploaderProps) => {
         id="image-uploader"
       />
       <label
-        className="w-full h-36 md:size-36 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-md cursor-pointer text-center text-sm text-gray-500 hover:bg-white transition"
         htmlFor="image-uploader"
+        className="w-full h-36 md:size-36 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-md cursor-pointer text-center text-sm text-gray-500 hover:bg-white transition"
       >
-        Upload Logo
+        {label}
       </label>
-      <div>
-        {imagePreview?.map((preview, idx) => (
-          <Image
-            key={idx}
-            src={preview}
-            width={500}
-            height={500}
-            alt="images"
-          />
-        ))}
-      </div>
     </div>
   );
 };

@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import ImageUploader from "@/components/ui/core/ImageUploader";
+import ImagePreviewer from "@/components/ui/core/ImageUploader/ImagePreviewer";
 import {
   Form,
   FormControl,
@@ -12,20 +13,42 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { createShop } from "@/services/Shop";
 import { useState } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 export default function CreateShopForm() {
   const form = useForm();
   const [imageFiles, setImageFiles] = useState<File[] | []>([]);
-
+  const [imagePreview, setImagePreview] = useState<string[] | []>([]);
   const {
     formState: { isSubmitting },
   } = form;
 
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
+    const servicesOffered = data?.servicesOffered
+      .split(",")
+      .map((service: string) => service.trim())
+      .filter((service: string) => service !== "");
+
+    const modifiedData = {
+      ...data,
+      servicesOffered: servicesOffered,
+      establishedYear: Number(data?.establishedYear),
+    };
     try {
-      console.log(data);
+      const formData = new FormData();
+      formData.append("data", JSON.stringify(modifiedData));
+      formData.append("logo", imageFiles[0] as File);
+
+      const res = await createShop(formData);
+
+      if (res?.success) {
+        toast.success(res?.message);
+      } else {
+        toast.error(res?.message);
+      }
     } catch (err: any) {
       console.error(err);
     }
@@ -178,7 +201,7 @@ export default function CreateShopForm() {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4 justify-center items-center">
             <div className="col-span-4 md:col-span-3">
               <FormField
                 control={form.control}
@@ -198,10 +221,23 @@ export default function CreateShopForm() {
                 )}
               />
             </div>
-            <ImageUploader
-              imageFiles={imageFiles}
-              setImageFiles={setImageFiles}
-            />
+            {imagePreview.length > 0 ? (
+              <ImagePreviewer
+                imagePreview={imagePreview}
+                setImageFiles={setImageFiles}
+                setImagePreview={setImagePreview}
+                className="mt-6"
+              />
+            ) : (
+              <div className="mt-6">
+                {" "}
+                <ImageUploader
+                  label="Upload Logo"
+                  setImageFiles={setImageFiles}
+                  setImagePreview={setImagePreview}
+                />
+              </div>
+            )}
           </div>
 
           <Button type="submit" className="mt-5 w-full">
